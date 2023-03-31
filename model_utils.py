@@ -10,7 +10,7 @@ class NumpyArrayEncoder(JSONEncoder):
             return obj.tolist()
         return JSONEncoder.default(self, obj)
 
-def save_model_json(model, layers_to_skip=(keras.layers.InputLayer), skip=0, samplerate=48000.0, author="Unknown", esr=0.99):
+def save_model_json(model, layers_to_skip=(keras.layers.InputLayer), skip=0, samplerate=48000.0, author="Unknown", esr=0.99, verbose=True):
     def get_layer_type(layer):
         if isinstance(layer, keras.layers.TimeDistributed):
             return 'time-distributed-dense'
@@ -79,10 +79,12 @@ def save_model_json(model, layers_to_skip=(keras.layers.InputLayer), skip=0, sam
     layers = []
     for layer in model.layers:
         if isinstance(layer, layers_to_skip):
-            print(f'Skipping layer: {layer}')
+            if verbose:
+                print(f'Skipping layer: {layer}')
             continue
         else:
-            print(f'Processing layer: {layer}')
+            if verbose:
+                print(f'Processing layer: {layer}')
             layer_dict = save_layer(layer)
             layers.append(layer_dict)
 
@@ -92,7 +94,7 @@ def save_model_json(model, layers_to_skip=(keras.layers.InputLayer), skip=0, sam
     model_dict["esr"] = esr
     return model_dict
 
-def save_model(model, filename, layers_to_skip=(keras.layers.InputLayer), skip=0, samplerate=48000.0, author="Unknown", esr=0.99):
-    model_dict = save_model_json(model, layers_to_skip, skip, samplerate, author, esr)
+def save_model(model, filename, layers_to_skip=(keras.layers.InputLayer), skip=0, samplerate=48000.0, author="Unknown", esr=0.99, verbose=True):
+    model_dict = save_model_json(model, layers_to_skip, skip, samplerate, author, esr, verbose=verbose)
     with open(filename, 'w') as outfile:
         json.dump(model_dict, outfile, cls=NumpyArrayEncoder, indent=4)
